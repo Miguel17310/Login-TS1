@@ -2,15 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Bienvenido</title>
+    <title>Tienda Online</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>¡Bienvenido, {{ username }}!</h2>
-        <p>Has iniciado sesión correctamente.</p>
-        <a href="{{ url_for('login') }}" class="btn-logout">Cerrar sesión</a>
+    <nav class="navbar">
+        <div class="nav-brand">¡Bienvenido, {{ username }}!</div>
+        <div class="nav-items">
+            <a href="{{ url_for('cart') }}" class="cart-icon">
+                🛒 Carrito (<span id="cart-count">{{ cart_count }}</span>)
+            </a>
+            <a href="{{ url_for('login') }}" class="btn-logout">Cerrar sesión</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h2>Productos Disponibles</h2>
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image">
+                <h3>{{ product.name }}</h3>
+                <p class="price">${{ product.price }}</p>
+                <button onclick="addToCart('{{ product.id }}')" class="btn-add-cart">
+                    Agregar al carrito
+                </button>
+            </div>
+            {% endfor %}
+        </div>
     </div>
+
+    <script>
+        function addToCart(productId) {
+            fetch('/add_to_cart/' + productId, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cart-count').textContent = data.cart_count;
+                alert('¡Producto agregado al carrito!');
+            });
+        }
+    </script>
 </body>
 </html>
-
