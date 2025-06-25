@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificación de Pago</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Verificación de Pago</div>
+        <div class="nav-items">
+            <a href="{{ url_for('welcome') }}">Tienda</a>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Cerrar sesión</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="verification-container" style="max-width: 600px; margin: 2rem auto; padding: 2rem; background-color: #f8f9fa; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div class="verification-header" style="text-align: center; margin-bottom: 2rem;">
+                <div class="verification-icon" style="font-size: 4rem; margin-bottom: 1rem;">📋</div>
+                <h2 style="color: #007bff; margin-bottom: 0.5rem;">Verificación de Pago</h2>
+                <p style="color: #666; font-size: 1.1rem;">Tu comprobante ha sido recibido correctamente</p>
+            </div>
+            
+            <div class="payment-info" style="background-color: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid #007bff;">
+                <h3 style="color: #333; margin-bottom: 1rem;">📄 Información del Pago</h3>
+                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                    <span style="font-weight: 500; color: #555;">ID de Transacción:</span>
+                    <span style="color: #333; font-family: monospace;">{{ payment_id }}</span>
+                </div>
+                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                    <span style="font-weight: 500; color: #555;">Total a Verificar:</span>
+                    <span style="color: #28a745; font-weight: 600; font-size: 1.1rem;">${{ total }}</span>
+                </div>
+                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                    <span style="font-weight: 500; color: #555;">Teléfono:</span>
+                    <span style="color: #333;">{{ phone_number }}</span>
+                </div>
+                <div class="info-row" style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; padding: 0.5rem 0;">
+                    <span style="font-weight: 500; color: #555;">Comprobante:</span>
+                    <span style="color: #28a745;">✅ Recibido</span>
+                </div>
+            </div>
+
+            <div class="verification-notice" style="background-color: #e3f2fd; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #2196f3; margin-bottom: 2rem;">
+                <h4 style="color: #1976d2; margin-bottom: 1rem;">🔍 Proceso de Verificación</h4>
+                <p style="color: #555; margin-bottom: 1rem;">Hemos recibido tu comprobante de pago. Para completar la transacción, haz clic en el botón "Comprobar Pago" a continuación.</p>
+                <ul style="color: #555; margin: 0; padding-left: 1.5rem;">
+                    <li>Tu comprobante será verificado automáticamente</li>
+                    <li>El stock será actualizado una vez confirmado</li>
+                    <li>Recibirás una confirmación inmediata</li>
+                </ul>
+            </div>
+
+            <div class="verification-actions" style="text-align: center;">
+                <form action="{{ url_for('verify_payment', payment_id=payment_id) }}" method="post" style="display: inline-block;">
+                    <button type="submit" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                        ✅ COMPROBAR PAGO
+                    </button>
+                </form>
+                
+                <div style="margin-top: 1rem;">
+                    <a href="{{ url_for('cart') }}" style="color: #6c757d; text-decoration: none; font-size: 0.9rem;">← Volver al carrito</a>
+                </div>
+            </div>
+
+            <div class="help-section" style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #ddd;">
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;"><strong>¿Problemas con la verificación?</strong></p>
+                <p style="color: #666; font-size: 0.9rem;">Contacta nuestro soporte: <a href="mailto:soporte@tienda.com" style="color: #007bff;">soporte@tienda.com</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Efecto hover para el botón
+        document.querySelector('button[type="submit"]').addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+        });
+        
+        document.querySelector('button[type="submit"]').addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+        });
+    </script>
+</body>
+</html>

@@ -24,9 +24,35 @@
                 <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image">
                 <h3>{{ product.name }}</h3>
                 <p class="price">${{ product.price }}</p>
-                <button onclick="addToCart('{{ product.id }}')" class="btn-add-cart">
+                
+                <!-- Información de stock -->
+                <div class="stock-info" style="margin: 0.75rem 0; padding: 0.5rem; background-color: {% if product.stock > 10 %}#d4edda{% elif product.stock > 5 %}#fff3cd{% else %}#f8d7da{% endif %}; border-radius: 4px; border-left: 4px solid {% if product.stock > 10 %}#28a745{% elif product.stock > 5 %}#ffc107{% else %}#dc3545{% endif %};">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-weight: 500; color: #333; font-size: 0.9rem;">Stock disponible:</span>
+                        <span style="font-weight: 600; color: {% if product.stock > 10 %}#155724{% elif product.stock > 5 %}#856404{% else %}#721c24{% endif %}; font-size: 1rem;">
+                            {{ product.stock }} unidades
+                        </span>
+                    </div>
+                    {% if product.stock <= 5 %}
+                    <div style="font-size: 0.8rem; color: #721c24; margin-top: 0.25rem; font-weight: 500;">
+                        ⚠️ ¡Últimas unidades!
+                    </div>
+                    {% elif product.stock <= 10 %}
+                    <div style="font-size: 0.8rem; color: #856404; margin-top: 0.25rem; font-weight: 500;">
+                        📦 Stock limitado
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if product.stock > 0 %}
+                <button onclick="addToCart('{{ product.id }}')" class="btn-add-cart" id="btn-{{ product.id }}">
                     Agregar al carrito
                 </button>
+                {% else %}
+                <button disabled class="btn-add-cart" style="background-color: #6c757d; cursor: not-allowed; opacity: 0.6;">
+                    Sin stock
+                </button>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -37,10 +63,26 @@
             fetch('/add_to_cart/' + productId, {
                 method: 'POST'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
             .then(data => {
                 document.getElementById('cart-count').textContent = data.cart_count;
+                const productCard = document.querySelector(`button[onclick="addToCart('${productId}')"]`).closest('.product-card');
+                const stockElement = productCard.querySelector('.stock-info');
+                const stockSpan = stockElement.querySelector('span:last-child');
+                stockSpan.textContent = `${data.stock_remaining} unidades`;
                 alert('¡Producto agregado al carrito!');
+            })
+            .catch(error => {
+                if (error.error === 'Stock no disponible') {
+                    alert('Lo sentimos, no hay suficiente stock disponible.');
+                } else {
+                    alert('Error al agregar al carrito: ' + error.error);
+                }
             });
         }
     </script>

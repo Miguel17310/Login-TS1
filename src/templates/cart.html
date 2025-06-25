@@ -31,16 +31,162 @@
                 <tr>
                     <td>{{ item.name }}</td>
                     <td>${{ item.price }}</td>
-                    <td>{{ item.quantity }}</td>
+                    <td>
+                        {{ item.quantity }}
+                        {% for product in products if product.id == item.id %}
+                        <small style="display: block; color: #666; font-size: 0.8rem;">
+                            (Stock disponible: {{ product.stock }} unidades)
+                        </small>
+                        {% endfor %}
+                    </td>
                     <td>${{ item.total }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <h3>Total a pagar: ${{ total }}</h3>
+        
+        <div class="total-section">
+            <h3>Total a pagar: ${{ total }}</h3>
+        </div>
+        
+        <div class="payment-section" style="background-color: #f8f9fa; border: 2px solid #007bff; padding: 2rem; margin: 2rem 0; border-radius: 8px;">
+            <h3 style="color: #007bff; text-align: center; margin-bottom: 2rem;">🛒 OPCIONES DE PAGO</h3>
+            
+            <!-- Selector de método de pago -->
+            <div class="payment-methods" style="display: flex; gap: 2rem; margin: 1.5rem 0; justify-content: center;">
+                <div class="payment-option" style="display: flex; align-items: center; gap: 0.5rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+                    <input type="radio" id="credit_card" name="payment_method" value="credit_card" onchange="togglePaymentMethod()" checked>
+                    <label for="credit_card" style="cursor: pointer; font-weight: 500; margin: 0;">💳 Tarjeta de Crédito</label>
+                </div>
+                <div class="payment-option" style="display: flex; align-items: center; gap: 0.5rem; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+                    <input type="radio" id="qr_code" name="payment_method" value="qr_code" onchange="togglePaymentMethod()">
+                    <label for="qr_code" style="cursor: pointer; font-weight: 500; margin: 0;">📱 YAPE / PLIN</label>
+                </div>
+            </div>
+
+            <!-- Formulario de Tarjeta de Crédito -->
+            <div id="credit-card-form" class="payment-form" style="margin-top: 2rem; padding: 2rem; border: 1px solid #ddd; border-radius: 8px; background-color: white;">
+                <h4 style="color: #28a745; margin-bottom: 1rem;">💳 Pago con Tarjeta de Crédito</h4>
+                <form action="{{ url_for('pay') }}" method="post" class="card-form">
+                    <input type="hidden" name="payment_method" value="credit_card">
+                    <input type="hidden" name="total" value="{{ total }}">
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="card_number" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Número de Tarjeta:</label>
+                        <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label for="expiry_date" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Fecha de Vencimiento:</label>
+                            <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/AA" maxlength="5" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label for="cvv" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">CVV:</label>
+                            <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="card_name" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nombre del Titular:</label>
+                        <input type="text" id="card_name" name="card_name" placeholder="Nombre completo" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    
+                    <button type="submit" style="width: 100%; padding: 1rem 2rem; background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 1rem;">💳 PAGAR CON TARJETA - ${{ total }}</button>
+                </form>
+            </div>
+
+            <!-- Formulario de QR (YAPE/PLIN) -->
+            <div id="qr-code-form" class="payment-form" style="display: none; margin-top: 2rem; padding: 2rem; border: 1px solid #ddd; border-radius: 8px; background-color: white;">
+                <h4 style="color: #ff6b35; margin-bottom: 1rem;">📱 Pago con YAPE / PLIN</h4>
+                <div class="qr-section" style="text-align: center; margin-bottom: 2rem;">
+                    <p><strong>Escanea el código QR para pagar</strong></p>
+                    <div style="display: flex; gap: 2rem; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap;">
+                        <div>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Commons_QR_code.png" alt="Código QR" style="width: 200px; height: 200px; border: 2px solid #ddd;">
+                        </div>
+                        <div style="text-align: left; max-width: 300px;">
+                            <p><strong>Monto a pagar:</strong> ${{ total }}</p>
+                            <p><strong>Concepto:</strong> Compra en tienda</p>
+                            <div style="background-color: #e3f2fd; padding: 1rem; border-radius: 4px; border-left: 4px solid #2196f3; font-size: 0.9rem;">
+                                1. Abre tu app de YAPE o PLIN<br>
+                                2. Escanea este código QR<br>
+                                3. Confirma el pago<br>
+                                4. Sube la captura de pantalla abajo
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            <form action="{{ url_for('pay') }}" method="post" enctype="multipart/form-data" id="qr-payment-form">
+                <input type="hidden" name="payment_method" value="qr_code">
+                <input type="hidden" name="total" value="{{ total }}">
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="payment_proof" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Sube la captura de pantalla del pago:</label>
+                    <input type="file" id="payment_proof" name="payment_proof" accept="image/*" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                    <small style="display: block; margin-top: 0.25rem; color: #666;">Formatos aceptados: JPG, PNG, GIF (máx. 5MB)</small>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="phone_number" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Número de teléfono usado para el pago:</label>
+                    <input type="tel" id="phone_number" name="phone_number" placeholder="987654321" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                
+                <button type="submit" style="width: 100%; padding: 1rem 2rem; background: linear-gradient(135deg, #ff6b35, #f7931e); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 1rem;">📱 SUBIR COMPROBANTE - ${{ total }}</button>
+            </form>
+            </div>
+        </div>
         {% else %}
-        <p>Tu carrito está vacío.</p>
+        <div class="empty-cart">
+            <p>Tu carrito está vacío.</p>
+            <a href="{{ url_for('welcome') }}" class="btn-continue-shopping">Continuar Comprando</a>
+        </div>
         {% endif %}
     </div>
+
+    <script>
+        // Mostrar formulario de tarjeta por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('credit_card').checked = true;
+            togglePaymentMethod();
+        });
+
+        function togglePaymentMethod() {
+            const creditCardForm = document.getElementById('credit-card-form');
+            const qrCodeForm = document.getElementById('qr-code-form');
+            const creditCardRadio = document.getElementById('credit_card');
+            const qrCodeRadio = document.getElementById('qr_code');
+
+            if (creditCardRadio.checked) {
+                creditCardForm.style.display = 'block';
+                qrCodeForm.style.display = 'none';
+            } else if (qrCodeRadio.checked) {
+                creditCardForm.style.display = 'none';
+                qrCodeForm.style.display = 'block';
+            }
+        }
+
+        // Formatear número de tarjeta
+        document.getElementById('card_number').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+
+        // Formatear fecha de vencimiento
+        document.getElementById('expiry_date').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // Solo números para CVV
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    </script>
 </body>
 </html>
